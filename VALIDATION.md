@@ -10,6 +10,7 @@ Observed passing paths:
 - Scale increase displays 125%; reset returns 100%; rotation control runs without JavaScript errors.
 - Help dialog opens and closes; printable marker is linked.
 - Rejected getUserMedia produces the camera error panel and retry button.
+- Portrait layout checked at 390×844. The camera video and render canvas have matching DOM rectangles: x=-367.664, y=0, width=1125.328, height=844; the disc renders with its circular proportions after correcting viewport-based canvas stretching.
 - Node syntax checks pass. Original glTF, BIN and pattern have identical SHA-256 digests to the supplied assets. Buffer ranges and all 17,136 indices are valid: 7,482 vertices, 5,712 triangles.
 
 Library warnings about deprecated Three.js lighting and AR.js markersAreaEnabled are upstream messages. The tested final application has no application JavaScript errors.

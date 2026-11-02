@@ -6,6 +6,19 @@
   let scene;
   let cameraVideo;
   let startupTimer;
+  let videoResizeObserver;
+
+  function alignSceneToCamera() {
+    if (!scene || !cameraVideo || !cameraVideo.videoWidth) return;
+    // ARToolkit's projection uses the uncropped camera aspect. Match the canvas to
+    // the cover-sized video, then crop both identically; viewport-sized canvases
+    // squeeze the model on portrait screens.
+    scene.style.width = cameraVideo.style.width;
+    scene.style.height = cameraVideo.style.height;
+    scene.style.marginLeft = cameraVideo.style.marginLeft;
+    scene.style.marginTop = cameraVideo.style.marginTop;
+    scene.resize();
+  }
 
   function renderStatus() {
     if (state.error) return;
@@ -90,6 +103,8 @@
     const video = event.detail?.component;
     if (!(video instanceof HTMLVideoElement)) return;
     cameraVideo = video;
+    videoResizeObserver = new ResizeObserver(alignSceneToCamera);
+    videoResizeObserver.observe(video);
     video.muted = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
@@ -98,6 +113,7 @@
       state.camera = true;
       document.body.dataset.camera = 'ready';
       clearTimeout(startupTimer);
+      alignSceneToCamera();
       renderStatus();
     };
     video.addEventListener('playing', ready);
@@ -128,9 +144,11 @@
   $('help-dialog').addEventListener('click', (event) => { if (event.target === $('help-dialog')) { const r = event.target.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) event.target.close(); } });
 
   window.addEventListener('pagehide', () => {
+    videoResizeObserver?.disconnect();
     cameraVideo?.srcObject?.getTracks().forEach((track) => track.stop());
   });
   window.addEventListener('pageshow', (event) => { if (event.persisted) window.location.reload(); });
+  window.addEventListener('resize', () => requestAnimationFrame(alignSceneToCamera));
   document.addEventListener('visibilitychange', () => {
     if (!scene || !state.camera) return;
     if (document.hidden) scene.pause();
@@ -155,7 +173,6 @@
       const marker = fragment.querySelector('a-marker');
       marker.addEventListener('markerFound', () => { state.marker = true; renderStatus(); });
       marker.addEventListener('markerLost', () => { state.marker = false; renderStatus(); });
-      scene.addEventListener('loaded', () => { scene.renderer?.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); });
       document.body.appendChild(fragment);
       renderStatus();
       startupTimer = window.setTimeout(() => {

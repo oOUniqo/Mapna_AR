@@ -8,7 +8,7 @@
   let visible = true;
   const draw = () => {
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (visible && marker.complete && marker.naturalWidth) ctx.drawImage(marker, 320, 160, 640, 640);
+    if (visible && marker.complete && marker.naturalWidth) ctx.drawImage(marker, 480, 320, 320, 320);
   };
   setInterval(draw, 1000 / 30);
   navigator.mediaDevices.enumerateDevices = async () => [{kind:'videoinput', deviceId:'test-camera', label:'Synthetic marker'}];
