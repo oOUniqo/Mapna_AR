@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "python3 -m http.server 8080 --bind 0.0.0.0 --directory dist",
-    "check": "node --check dist/app.js && node --check dist/marker.js"
+    "check": "node --check dist/app.js && node --check dist/model-gestures.js && node --check dist/marker.js",
+    "test:gestures": "node --test tests/model-gestures.test.cjs"
   }
 }

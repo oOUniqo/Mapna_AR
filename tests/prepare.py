@@ -8,7 +8,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 html = (root / 'dist/index.html').read_text().replace(
     '<head>',
-    '<head>\n<base href="/dist/">\n<script src="/tests/fake-camera.js"></script>',
+    '<head>\n<base href="/dist/">\n<script src="/tests/fake-camera.js"></script>\n<script src="/tests/gesture-browser-check.js" defer></script>',
     1,
 )
 (root / 'test-results').mkdir(exist_ok=True)

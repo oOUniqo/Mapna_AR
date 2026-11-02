@@ -7,8 +7,9 @@
   <meta name="description" content="قطعه MW35018A را با دوربین و مارکر اختصاصی در واقعیت افزوده ببینید.">
   <title>MOGS · نمایش قطعه در واقعیت افزوده</title>
   <link rel="icon" href="./assets/brand/mogs-logo.png" type="image/png">
-  <link rel="stylesheet" href="./styles.css?v=iis-v3">
-  <script src="./app.js?v=iis-v3" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=gestures-v4">
+  <script src="./model-gestures.js?v=gestures-v4" defer></script>
+  <script src="./app.js?v=gestures-v4" defer></script>
 </head>
 <body data-state="starting">
   <div class="camera-backdrop" aria-hidden="true"></div>
@@ -36,7 +37,7 @@
         </div>
         <label class="tracking-option" for="tracking-hold"><span>مهلت قطع تشخیص مارکر</span><select id="tracking-hold"><option value="0">بدون مهلت</option><option value="500">۰٫۵ ثانیه</option><option value="1500" selected>۱٫۵ ثانیه</option><option value="3000">۳ ثانیه</option></select></label>
       </section>
-      <footer><span>دوربین را آرام و ثابت نگه دارید</span><button type="button" id="help-open">راهنمای مارکر <span aria-hidden="true">↗</span></button></footer>
+      <footer><span>کشیدن: چرخش · دو انگشت: زوم و چرخش</span><button type="button" id="help-open">راهنما <span aria-hidden="true">↗</span></button></footer>
     </div>
   </main>
 
@@ -49,6 +50,7 @@
     <img class="marker-preview" src="./assets/marker/marker-black.svg" alt="مارکر اصلی MOGS با حاشیهٔ مشکی و زمینهٔ سفید" width="280" height="280">
     <ol><li>مارکر را چاپ کنید یا روی یک نمایشگر دیگر باز کنید.</li><li>اجازهٔ دسترسی به دوربین را بدهید.</li><li>تمام حاشیهٔ مشکی مارکر را با نور کافی در دید دوربین نگه دارید.</li></ol>
     <p class="marker-note">از همین تصویرِ دارای کادر مشکی استفاده کنید؛ لوگوی تنها مارکر نیست. تمام کادر و حاشیهٔ سفید بیرونی باید در دید دوربین باشند.</p>
+    <p class="marker-note">بعد از نمایش قطعه، روی تصویر دوربین با یک انگشت به چپ و راست بکشید تا قطعه بچرخد. دو انگشت را باز یا بسته کنید تا اندازه تغییر کند؛ پیچاندن دو انگشت هم قطعه را می‌چرخاند. بازنشانی، اندازه و چرخش اولیه را برمی‌گرداند.</p>
     <a class="primary-button" href="./marker.html" target="_blank" rel="noopener">نمایش مارکر برای چاپ <span aria-hidden="true">↗</span></a>
   </dialog>
   <div id="error-popup" hidden></div>

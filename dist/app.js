@@ -8,6 +8,11 @@
   let startupTimer;
   let videoResizeObserver;
   let layoutRequest = 0;
+  let gestures;
+
+  function canManipulateModel() {
+    return state.model && (state.marker || state.holding) && !state.error && !document.hidden && !$('help-dialog').open;
+  }
 
   function requestCameraLayout() {
     if (layoutRequest) return;
@@ -29,6 +34,7 @@
   }
 
   function renderStatus() {
+    if (!canManipulateModel()) gestures?.cancel();
     if (state.error) return;
     document.body.dataset.state = state.camera && state.model && (state.marker || state.holding) ? (state.holding ? 'holding' : 'tracked') : state.camera ? 'scanning' : 'starting';
     $('status-text').textContent = !state.camera ? 'در انتظار دسترسی به دوربین…' : !state.model ? 'دوربین آماده است؛ در حال بارگذاری قطعه…' : state.marker ? 'مارکر شناسایی شد · قطعه در حال نمایش است' : state.holding ? 'مارکر موقتاً گم شده؛ نمایش آخرین موقعیت…' : 'در حال جست‌وجوی مارکر…';
@@ -39,6 +45,7 @@
 
   function showError(title, message) {
     state.error = true;
+    gestures?.cancel();
     $('tracked-part')?.setAttribute('marker-persistence', 'ready', false);
     $('tracked-part')?.components?.['marker-persistence']?.reset();
     clearTimeout(startupTimer);
@@ -186,7 +193,13 @@
   $('larger').addEventListener('click', () => { state.scale = Math.min(3, Math.round((state.scale + 0.25) * 100) / 100); updateTransform(); });
   $('rotate').addEventListener('click', () => { state.rotation = (state.rotation + 45) % 360; updateTransform(); });
   $('reset').addEventListener('click', () => { state.scale = 1; state.rotation = 0; updateTransform(); });
-  $('help-open').addEventListener('click', () => $('help-dialog').showModal());
+  gestures = window.MOGS.createModelGestures({
+    surface: $('ar-stage'),
+    isEnabled: canManipulateModel,
+    getTransform: () => ({scale: state.scale, rotation: state.rotation}),
+    onChange: ({scale, rotation}) => { state.scale = scale; state.rotation = rotation; updateTransform(); }
+  });
+  $('help-open').addEventListener('click', () => { gestures.cancel(); $('help-dialog').showModal(); });
   $('help-close').addEventListener('click', () => $('help-dialog').close());
   const holdOptions = new Set(['0', '500', '1500', '3000']);
   try {
@@ -202,6 +215,7 @@
   $('help-dialog').addEventListener('click', (event) => { if (event.target === $('help-dialog')) { const r = event.target.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) event.target.close(); } });
 
   window.addEventListener('pagehide', () => {
+    gestures.destroy();
     videoResizeObserver?.disconnect();
     cancelAnimationFrame(layoutRequest);
     cameraVideo?.srcObject?.getTracks().forEach((track) => track.stop());
