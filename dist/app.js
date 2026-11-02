@@ -60,6 +60,39 @@
     });
   }
 
+  async function verifyTrackingAssets() {
+    const verify = async (path, kind) => {
+      const title = kind === 'pattern' ? 'فایل الگوی مارکر دریافت نشد' : 'فایل کالیبراسیون دوربین دریافت نشد';
+      const fail = (message) => { const error = new Error(message); error.userTitle = title; throw error; };
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(new URL(path, document.baseURI), {signal: controller.signal, cache: 'no-cache'});
+        if (!response.ok) fail(`HTTP ${response.status} — ${path.split('?')[0]} . همهٔ فایل‌های بسته را آپلود کنید؛ روی IIS تنظیمات MIME در web.config لازم است.`);
+        if (kind === 'pattern') {
+          const text = await response.text();
+          const values = text.trim().split(/\s+/);
+          if (values.length !== 3072 || values.some(value => !/^\d+$/.test(value) || Number(value) > 255)) fail('پاسخ سرور یک فایل الگوی معتبر نیست. سرور باید خود فایل .patt را برگرداند، نه صفحهٔ HTML.');
+        } else {
+          const buffer = await response.arrayBuffer();
+          if (buffer.byteLength < 136) fail('فایل camera_para.dat ناقص است یا سرور پاسخ اشتباه برگردانده است.');
+          const view = new DataView(buffer);
+          const width = view.getUint32(0, false), height = view.getUint32(4, false);
+          if (!width || !height || width > 16384 || height > 16384) fail('پاسخ سرور فایل کالیبراسیون معتبر نیست. مسیر vendor/camera_para.dat را بررسی کنید.');
+        }
+      } catch (error) {
+        if (error.userTitle) throw error;
+        const failure = new Error(`ارتباط برای دریافت ${path.split('?')[0]} برقرار نشد. اتصال و دسترسی فایل روی سرور را بررسی کنید.`);
+        failure.userTitle = title;
+        throw failure;
+      } finally { clearTimeout(timeout); }
+    };
+    await Promise.all([
+      verify('./assets/marker/mogs-white-background.patt?v=iis-v3', 'pattern'),
+      verify('./vendor/camera_para.dat?v=iis-v3', 'calibration')
+    ]);
+  }
+
   function updateTransform() {
     const holder = $('model-controls');
     if (!holder || !state.model) return;
@@ -192,6 +225,7 @@
       return;
     }
     try {
+      await verifyTrackingAssets();
       await loadScript('./vendor/aframe-1.6.0.min.js');
       await loadScript('./vendor/aframe-ar-3.4.8.js');
       await loadScript('./marker-persistence.js?v=1');
@@ -213,7 +247,7 @@
       }, 20000);
     } catch (error) {
       console.error(error);
-      showError('راه‌اندازی نمایش سه‌بعدی ناموفق بود', 'صفحه را دوباره بارگذاری کنید و مطمئن شوید مرورگر از WebGL پشتیبانی می‌کند.');
+      showError(error.userTitle || 'راه‌اندازی نمایش سه‌بعدی ناموفق بود', error.userTitle ? error.message : 'صفحه را دوباره بارگذاری کنید و مطمئن شوید مرورگر از WebGL پشتیبانی می‌کند.');
     }
   }
   start();

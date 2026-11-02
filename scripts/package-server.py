@@ -6,19 +6,22 @@ import hashlib,json,re,shutil,struct,zipfile
 
 project=Path(__file__).resolve().parent.parent
 source=project/'dist'
-output=project.parent/'WebAR-server-ready-v2'
+output=project.parent/'WebAR-server-ready-v3'
 output.mkdir(exist_ok=True)
 files=[
- 'index.html','app.js','styles.css','marker.html','marker.js','marker-persistence.js','model-loader.js','favicon.svg','_headers',
+ 'web.config','index.html','app.js','styles.css','marker.html','marker.js','marker-persistence.js','model-loader.js','favicon.svg','_headers',
  'vendor/aframe-1.6.0.min.js','vendor/aframe-ar-3.4.8.js','vendor/camera_para.dat','vendor/LICENSE-aframe','vendor/LICENSE-arjs',
  'assets/brand/mogs-logo.png','assets/marker/marker-black.svg','assets/marker/mogs-white-background.patt','assets/model/MW35018A.glb'
 ]
 for name in files:
  destination=output/name;destination.parent.mkdir(parents=True,exist_ok=True)
  shutil.copy2(source/name,destination)
-readme='''نسخهٔ اصلاح موبایل v2
+readme='''نسخهٔ اصلاح دسترسی فایل‌های IIS - v3
 
-تمام محتوای ZIP را در مسیر سایت استخراج کنید؛ index.html در ریشهٔ همان مسیر باشد.
+تمام محتوای ZIP را در مسیر سایت استخراج کنید؛ index.html و web.config در ریشهٔ همان مسیر باشند.
+اگر از قبل web.config سفارشی دارید، بخش staticContent این فایل را با آن ادغام کنید و تنظیمات دیگر سرور را نگه دارید.
+دو فایل assets/marker/mogs-white-background.patt و vendor/camera_para.dat باید روی سرور قابل دانلود باشند؛ پاسخ درست HTTP 200 است.
+این بسته نگاشت MIME پسوندهای .patt و .dat و .glb را برای IIS دارد. این تنظیم مجوز پوشه یا فایلِ آپلودنشده را درست نمی‌کند؛ فایل‌ها باید واقعاً در مسیرهای بسته موجود باشند.
 HTTPS معتبر و مجوز دوربین لازم است. نصب npm یا build لازم نیست.
 فایل مدل جدید: assets/model/MW35018A.glb . این فایل کامل است و BIN جداگانه لازم ندارد.
 تمام فایل‌های نسخهٔ جدید، از جمله app.js، styles.css و model-loader.js را جایگزین کنید.
@@ -30,7 +33,7 @@ HTTPS معتبر و مجوز دوربین لازم است. نصب npm یا build
 برای مارکر مشکی از marker.html استفاده کنید. تنظیم نگه‌داشتن آخرین موقعیت مدل حفظ شده است.
 '''
 (output/'README-DEPLOY.fa.txt').write_text(readme)
-(output/'VERSION.txt').write_text('mobile-v2\n')
+(output/'VERSION.txt').write_text('iis-v3\n')
 checksums=''.join(hashlib.sha256((output/n).read_bytes()).hexdigest()+'  '+n+'\n' for n in files)
 (output/'SHA256SUMS.txt').write_text(checksums)
 class Links(HTMLParser):

@@ -6,9 +6,13 @@
   const marker = new Image();
   marker.src = '/dist/assets/marker/marker-black.svg';
   const modelFailure = new URLSearchParams(location.search).get('model');
-  if (modelFailure) {
+  const trackingFailure = new URLSearchParams(location.search).get('tracking');
+  if (modelFailure || trackingFailure) {
     const realFetch = window.fetch.bind(window);
     window.fetch = (input, options) => {
+      if (trackingFailure === 'pattern404' && String(input).includes('.patt')) return Promise.resolve(new Response('Missing', {status:404}));
+      if (trackingFailure === 'calibration404' && String(input).includes('camera_para.dat')) return Promise.resolve(new Response('Missing', {status:404}));
+      if (trackingFailure === 'patternHTML' && String(input).includes('.patt')) return Promise.resolve(new Response('<!doctype html><html>Fallback</html>', {status:200}));
       if (String(input).includes('MW35018A.glb')) {
         if (modelFailure === '404') return Promise.resolve(new Response('Missing', {status:404}));
         if (modelFailure === 'html') return Promise.resolve(new Response('<!doctype html><html>Fallback page</html>', {status:200}));
