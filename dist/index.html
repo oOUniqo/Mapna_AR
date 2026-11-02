@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111714">
+  <meta name="description" content="قطعه MW35018A را با دوربین و مارکر اختصاصی در واقعیت افزوده ببینید.">
+  <title>MOGS · نمایش قطعه در واقعیت افزوده</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body data-state="starting">
+  <div class="camera-backdrop" aria-hidden="true"></div>
+  <main class="interface">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="MOGS؛ صفحه اصلی" dir="ltr"><span class="brand-symbol">M</span><span>MOGS<small>PARTS IN REALITY</small></span></a>
+      <span class="mode-label"><span class="live-dot"></span>نمایش زنده <span dir="ltr">AR</span></span>
+    </header>
+
+    <section class="viewfinder" aria-label="محدودهٔ راهنمای اسکن">
+      <div class="scan-frame" aria-hidden="true"><i></i><i></i><i></i><i></i><div class="scan-line"></div></div>
+      <div class="scan-caption"><span class="tiny-cross">＋</span><span id="scan-hint">مارکر را در دید دوربین قرار دهید</span></div>
+    </section>
+
+    <div class="bottom-stack">
+      <div class="status" role="status" aria-live="polite"><span class="status-dot"></span><span id="status-text">در حال آماده‌سازی دوربین…</span></div>
+      <section class="part-card" aria-label="کنترل نمایش قطعه">
+        <div class="part-heading"><div><span class="eyebrow">نمایش قطعه در واقعیت افزوده</span><h1 dir="ltr">MW35018A<span class="part-accent"> / </span><span>01</span></h1></div><div class="part-badge" aria-hidden="true">3D</div></div>
+        <div class="card-divider"></div>
+        <div class="tools">
+          <div class="scale-tools" dir="ltr"><button type="button" id="smaller" aria-label="کوچک‌تر کردن مدل" title="کوچک‌تر" disabled>−</button><output id="scale-value" aria-label="اندازهٔ نسبی مدل">100%</output><button type="button" id="larger" aria-label="بزرگ‌تر کردن مدل" title="بزرگ‌تر" disabled>+</button></div>
+          <button type="button" id="rotate" class="text-tool" disabled><span aria-hidden="true">↻</span> چرخش</button>
+          <button type="button" id="reset" class="text-tool" disabled><span aria-hidden="true">⟲</span> بازنشانی</button>
+        </div>
+      </section>
+      <footer><span>دوربین را آرام و ثابت نگه دارید</span><button type="button" id="help-open">راهنمای مارکر <span aria-hidden="true">↗</span></button></footer>
+    </div>
+  </main>
+
+  <section id="error-panel" class="notice" role="alert" hidden><div class="notice-icon" aria-hidden="true">!</div><h2 id="error-title">دوربین در دسترس نیست</h2><p id="error-message"></p><button type="button" id="retry" class="primary-button">تلاش مجدد</button></section>
+  <button type="button" id="play-camera" class="primary-button playback" hidden>فعال‌کردن تصویر دوربین</button>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-header"><span class="eyebrow">راهنمای شروع</span><button type="button" id="help-close" aria-label="بستن راهنما">×</button></div>
+    <h2 id="help-title">مارکر، نقطهٔ شروع شماست.</h2>
+    <img class="marker-preview" src="./assets/marker/marker.svg" alt="مارکر بازسازی‌شده از اطلاعات فایل pattern؛ دارای حاشیهٔ مشکی و زمینهٔ سفید" width="280" height="280">
+    <ol><li>مارکر را چاپ کنید یا روی یک نمایشگر دیگر باز کنید.</li><li>اجازهٔ دسترسی به دوربین را بدهید.</li><li>تمام حاشیهٔ مشکی مارکر را با نور کافی در دید دوربین نگه دارید.</li></ol>
+    <p class="marker-note">فایل شما فقط اطلاعات مارکر را دارد؛ این تصویر از همان داده‌ها بازسازی شده است. اگر تصویر اصلی مارکر را دارید، از آن استفاده کنید.</p>
+    <a class="primary-button" href="./marker.html" target="_blank" rel="noopener">نمایش مارکر برای چاپ <span aria-hidden="true">↗</span></a>
+  </dialog>
+  <div id="error-popup" hidden></div>
+  <noscript><div class="notice">برای نمایش واقعیت افزوده، جاوااسکریپت مرورگر را فعال کنید.</div></noscript>
+
+  <template id="scene-template">
+    <a-scene embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" renderer="alpha: true; antialias: true; colorManagement: true; precision: medium" arjs="sourceType: webcam; trackingMethod: best; detectionMode: mono; patternRatio: 0.5; debugUIEnabled: false; sourceWidth: 1280; sourceHeight: 960; canvasWidth: 640; canvasHeight: 480; maxDetectionRate: 30; cameraParametersUrl: ./vendor/camera_para.dat; errorPopup: error-popup;">
+      <a-entity light="type: ambient; color: #ffffff; intensity: 0.65"></a-entity>
+      <a-entity light="type: directional; color: #ffffff; intensity: 1.2" position="1 3 2"></a-entity>
+      <a-entity light="type: directional; color: #d7e8ff; intensity: 0.4" position="-2 1 -1"></a-entity>
+      <a-marker id="part-marker" type="pattern" url="./assets/marker/pattern.patt" size="1" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity id="model-controls"><a-entity id="part-model" fit-to-marker gltf-model="url(./assets/model/MW35018A.gltf)"></a-entity></a-entity>
+      </a-marker>
+      <a-entity camera="near: 0.01; far: 1000" look-controls="enabled: false" wasd-controls="enabled: false"></a-entity>
+    </a-scene>
+  </template>
+</body>
+</html>

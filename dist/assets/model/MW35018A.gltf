@@ -1,0 +1,162 @@
+{
+    "asset": {
+        "generator": "SOLIDWORKSGLTF",
+        "version": "2.0"
+    },
+    "scene": 0,
+    "scenes": [
+        {
+            "name": "Default",
+            "nodes": [
+                0,
+                1
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "matrix": [
+                -0.004286916743187041,
+                -0.5455738807683459,
+                0.8380517662818948,
+                0.0,
+                0.8527535988898088,
+                -0.4397134595725136,
+                -0.2818924849144625,
+                0.0,
+                0.5222958184068833,
+                0.7134432101394883,
+                0.46712510527753254,
+                0.0,
+                0.780359567104638,
+                1.0082462996010717,
+                0.6601466692138784,
+                1.0
+            ],
+            "camera": 0,
+            "name": "current camera"
+        },
+        {
+            "mesh": 0,
+            "name": "MW35018A"
+        }
+    ],
+    "cameras": [
+        {
+            "type": "orthographic",
+            "orthographic": {
+                "xmag": 0.26441403374131417,
+                "ymag": 0.20431993516374278,
+                "zfar": 2.2012285635328728,
+                "znear": 1.0192032845201942
+            }
+        }
+    ],
+    "meshes": [
+        {
+            "primitives": [
+                {
+                    "attributes": {
+                        "POSITION": 1,
+                        "NORMAL": 2
+                    },
+                    "indices": 0,
+                    "material": 0,
+                    "mode": 4
+                }
+            ]
+        }
+    ],
+    "accessors": [
+        {
+            "bufferView": 0,
+            "byteOffset": 0,
+            "componentType": 5125,
+            "count": 17136,
+            "type": "SCALAR",
+            "min": [
+                0
+            ],
+            "max": [
+                7481
+            ]
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 7482,
+            "type": "VEC3",
+            "min": [
+                0.0,
+                -0.27692288160324097,
+                -0.2768343985080719
+            ],
+            "max": [
+                0.08449000120162964,
+                0.2770000100135803,
+                0.2768343985080719
+            ]
+        },
+        {
+            "bufferView": 2,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 7482,
+            "type": "VEC3",
+            "min": [
+                -1.0,
+                -1.0,
+                -1.0
+            ],
+            "max": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        }
+    ],
+    "materials": [
+        {
+            "name": "color",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    1.0,
+                    1.0,
+                    0.0,
+                    1.0
+                ],
+                "metallicFactor": 0.0,
+                "roughnessFactor": 0.20000000298023224
+            }
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteOffset": 0,
+            "byteLength": 68544,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 68544,
+            "byteLength": 89784,
+            "byteStride": 12,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 158328,
+            "byteLength": 89784,
+            "byteStride": 12,
+            "target": 34962
+        }
+    ],
+    "buffers": [
+        {
+            "uri": "MW35018A.bin",
+            "byteLength": 248112
+        }
+    ]
+}
