@@ -1,0 +1,9 @@
+# Mobile deployment fixes (v2)
+
+- The public server URL could not be inspected with verified TLS: its certificate is self-signed. The exact cause of the reported deployed model failure is therefore unconfirmed.
+- AR.js's periodic body resizing is now prevented from changing page geometry. Video and scene live in a fixed, clipped, size-contained camera stage. Camera layout changes are coalesced and renderer.resize is called only when dimensions change. Form select text is at least 16px to avoid small-control focus zoom on iOS.
+- Browser measurements with a synthetic 1280x720 stream: at 390x844, body/interface/root scroll width remained 390; video/canvas both 1500.438x844 at x=-555.219. At 844x390 after orientation settling, root/interface/scroll widths were 844; video/canvas both 844x474.75 at y=-42.375. A shortened 390x720 viewport was also checked. This is browser responsive evidence, not a physical iOS/Android pass.
+- The model is now a self-contained 249720-byte GLB. Parsed JSON equals the supplied glTF after removing its external buffer URI, and the embedded BIN bytes equal the original binary exactly. Material and geometry data were not changed.
+- The GLB loaded, the real marker detector recognized the synthetic marker and the original model rendered. Missing model (HTTP 404) and server HTML fallback (HTTP 200) were injected independently; each produced its specific error text. The 404 test is an injected failure, not a claim about the live server.
+- The server bundle was rebuilt at WebAR-server-ready-v2.zip with runtime paths, GLB contents and ZIP integrity checked. Previous source assets and deployment packages remain available.
+- Native mobile permission/zoom behavior and the deployed server response require a device pass after uploading the new complete bundle.

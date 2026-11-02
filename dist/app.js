@@ -2,28 +2,36 @@
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const state = { camera: false, model: false, marker: false, error: false, scale: 1, rotation: 0 };
+  const state = { camera: false, model: false, marker: false, holding: false, error: false, scale: 1, rotation: 0 };
   let scene;
   let cameraVideo;
   let startupTimer;
   let videoResizeObserver;
+  let layoutRequest = 0;
+
+  function requestCameraLayout() {
+    if (layoutRequest) return;
+    layoutRequest = requestAnimationFrame(() => { layoutRequest = 0; alignSceneToCamera(); });
+  }
 
   function alignSceneToCamera() {
     if (!scene || !cameraVideo || !cameraVideo.videoWidth) return;
     // ARToolkit's projection uses the uncropped camera aspect. Match the canvas to
     // the cover-sized video, then crop both identically; viewport-sized canvases
     // squeeze the model on portrait screens.
-    scene.style.width = cameraVideo.style.width;
-    scene.style.height = cameraVideo.style.height;
-    scene.style.marginLeft = cameraVideo.style.marginLeft;
-    scene.style.marginTop = cameraVideo.style.marginTop;
-    scene.resize();
+    const width = cameraVideo.style.width;
+    const height = cameraVideo.style.height;
+    const sizeChanged = scene.style.width !== width || scene.style.height !== height;
+    if (sizeChanged) { scene.style.width = width; scene.style.height = height; }
+    if (scene.style.marginLeft !== cameraVideo.style.marginLeft) scene.style.marginLeft = cameraVideo.style.marginLeft;
+    if (scene.style.marginTop !== cameraVideo.style.marginTop) scene.style.marginTop = cameraVideo.style.marginTop;
+    if (sizeChanged) scene.resize();
   }
 
   function renderStatus() {
     if (state.error) return;
-    document.body.dataset.state = state.camera && state.model && state.marker ? 'tracked' : state.camera ? 'scanning' : 'starting';
-    $('status-text').textContent = !state.camera ? 'در انتظار دسترسی به دوربین…' : !state.model ? 'دوربین آماده است؛ در حال بارگذاری قطعه…' : state.marker ? 'مارکر شناسایی شد · قطعه در حال نمایش است' : 'در حال جست‌وجوی مارکر…';
+    document.body.dataset.state = state.camera && state.model && (state.marker || state.holding) ? (state.holding ? 'holding' : 'tracked') : state.camera ? 'scanning' : 'starting';
+    $('status-text').textContent = !state.camera ? 'در انتظار دسترسی به دوربین…' : !state.model ? 'دوربین آماده است؛ در حال بارگذاری قطعه…' : state.marker ? 'مارکر شناسایی شد · قطعه در حال نمایش است' : state.holding ? 'مارکر موقتاً گم شده؛ نمایش آخرین موقعیت…' : 'در حال جست‌وجوی مارکر…';
     ['smaller', 'larger', 'rotate', 'reset'].forEach((id) => { $(id).disabled = !state.model; });
     $('smaller').disabled = !state.model || state.scale <= 0.25;
     $('larger').disabled = !state.model || state.scale >= 3;
@@ -31,6 +39,8 @@
 
   function showError(title, message) {
     state.error = true;
+    $('tracked-part')?.setAttribute('marker-persistence', 'ready', false);
+    $('tracked-part')?.components?.['marker-persistence']?.reset();
     clearTimeout(startupTimer);
     document.body.dataset.state = 'error';
     $('error-title').textContent = title;
@@ -63,6 +73,7 @@
     AFRAME.registerComponent('fit-to-marker', {
       init() {
         this.el.addEventListener('model-loaded', () => {
+          if (state.error) return;
           const model = this.el.getObject3D('mesh');
           // The supplied disc's axis is X. Rotate it onto the marker's XZ plane.
           model.rotation.z = Math.PI / 2;
@@ -79,10 +90,11 @@
           model.position.set(-center.x * scale, -bounds.min.y * scale + 0.015, -center.z * scale);
           model.updateMatrixWorld(true);
           state.model = true;
+          $('tracked-part').setAttribute('marker-persistence', 'ready', true);
           renderStatus();
         });
-        this.el.addEventListener('model-error', () => {
-          showError('قطعه بارگذاری نشد', 'اتصال و فایل‌های MW35018A.gltf و MW35018A.bin را بررسی کنید، سپس دوباره تلاش کنید.');
+        this.el.addEventListener('model-error', (event) => {
+          showError('قطعه بارگذاری نشد', event.detail?.message || 'فایل MW35018A.glb را بررسی کنید و دوباره تلاش کنید.');
         });
       }
     });
@@ -103,8 +115,10 @@
     const video = event.detail?.component;
     if (!(video instanceof HTMLVideoElement)) return;
     cameraVideo = video;
-    videoResizeObserver = new ResizeObserver(alignSceneToCamera);
+    $('ar-stage').appendChild(video);
+    videoResizeObserver = new ResizeObserver(requestCameraLayout);
     videoResizeObserver.observe(video);
+    videoResizeObserver.observe($('ar-stage'));
     video.muted = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
@@ -113,7 +127,7 @@
       state.camera = true;
       document.body.dataset.camera = 'ready';
       clearTimeout(startupTimer);
-      alignSceneToCamera();
+      requestCameraLayout();
       renderStatus();
     };
     video.addEventListener('playing', ready);
@@ -141,14 +155,27 @@
   $('reset').addEventListener('click', () => { state.scale = 1; state.rotation = 0; updateTransform(); });
   $('help-open').addEventListener('click', () => $('help-dialog').showModal());
   $('help-close').addEventListener('click', () => $('help-dialog').close());
+  const holdOptions = new Set(['0', '500', '1500', '3000']);
+  try {
+    const savedHold = localStorage.getItem('mogs-marker-hold-ms');
+    if (holdOptions.has(savedHold)) $('tracking-hold').value = savedHold;
+  } catch { /* Storage may be unavailable in private browsing. */ }
+  $('tracking-hold').addEventListener('change', () => {
+    const value = $('tracking-hold').value;
+    if (!holdOptions.has(value)) return;
+    $('tracked-part')?.setAttribute('marker-persistence', 'holdMs', Number(value));
+    try { localStorage.setItem('mogs-marker-hold-ms', value); } catch { /* Optional preference. */ }
+  });
   $('help-dialog').addEventListener('click', (event) => { if (event.target === $('help-dialog')) { const r = event.target.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) event.target.close(); } });
 
   window.addEventListener('pagehide', () => {
     videoResizeObserver?.disconnect();
+    cancelAnimationFrame(layoutRequest);
     cameraVideo?.srcObject?.getTracks().forEach((track) => track.stop());
   });
   window.addEventListener('pageshow', (event) => { if (event.persisted) window.location.reload(); });
-  window.addEventListener('resize', () => requestAnimationFrame(alignSceneToCamera));
+  window.addEventListener('resize', requestCameraLayout);
+  window.visualViewport?.addEventListener('resize', requestCameraLayout);
   document.addEventListener('visibilitychange', () => {
     if (!scene || !state.camera) return;
     if (document.hidden) scene.pause();
@@ -167,13 +194,19 @@
     try {
       await loadScript('./vendor/aframe-1.6.0.min.js');
       await loadScript('./vendor/aframe-ar-3.4.8.js');
+      await loadScript('./marker-persistence.js?v=1');
+      await loadScript('./model-loader.js?v=mobile-v2');
       registerModelComponent();
       const fragment = $('scene-template').content.cloneNode(true);
       scene = fragment.querySelector('a-scene');
-      const marker = fragment.querySelector('a-marker');
-      marker.addEventListener('markerFound', () => { state.marker = true; renderStatus(); });
-      marker.addEventListener('markerLost', () => { state.marker = false; renderStatus(); });
-      document.body.appendChild(fragment);
+      const trackedPart = fragment.querySelector('#tracked-part');
+      trackedPart.setAttribute('marker-persistence', `marker: #part-marker; holdMs: ${Number($('tracking-hold').value)}`);
+      trackedPart.addEventListener('tracking-phase-changed', (event) => {
+        state.marker = event.detail.phase === 'tracked';
+        state.holding = event.detail.phase === 'holding';
+        renderStatus();
+      });
+      $('ar-stage').appendChild(fragment);
       renderStatus();
       startupTimer = window.setTimeout(() => {
         if (!state.camera && !state.error) $('status-text').textContent = 'لطفاً پیام مجوز دوربین مرورگر را بررسی کنید.';

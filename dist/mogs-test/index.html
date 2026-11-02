@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#172129">
+  <title>تست مارکر مشکی MOGS و باکس</title>
+  <link rel="stylesheet" href="../hiro-test/hiro.css?v=aligned">
+  <script src="../vendor/aframe-1.6.0.min.js"></script>
+  <script src="../vendor/aframe-ar-3.4.8.js"></script>
+  <script src="./mogs.js"></script>
+</head>
+<body>
+  <header class="test-label"><strong>تست مارکر MOGS + Box</strong><span id="status" role="status" aria-live="polite">در انتظار مجوز دوربین…</span><button id="play-camera" type="button" hidden>فعال‌کردن تصویر دوربین</button></header>
+  <footer><a href="../marker.html" target="_blank" rel="noopener">تصویر مارکر مشکی ↗</a><a href="../">بازگشت به سایت اصلی</a></footer>
+  <div id="error-popup" hidden></div>
+  <a-scene embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" renderer="alpha: true; antialias: true" arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; patternRatio: 0.77; cameraParametersUrl: ../vendor/camera_para.dat;">
+    <a-marker id="hiro-marker" type="pattern" url="../assets/marker/mogs-white-background.patt" emitevents="true">
+      <a-box id="hiro-box" position="0 0.5 0" width="1" height="1" depth="1" color="#36C5F0"></a-box>
+    </a-marker>
+    <a-entity camera look-controls="enabled: false" wasd-controls="enabled: false"></a-entity>
+  </a-scene>
+</body>
+</html>

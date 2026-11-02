@@ -1,0 +1,56 @@
+"""Package only runtime assets; keep previous deployment packages unchanged."""
+from pathlib import Path
+from html.parser import HTMLParser
+from urllib.parse import urlsplit,unquote
+import hashlib,json,re,shutil,struct,zipfile
+
+project=Path(__file__).resolve().parent.parent
+source=project/'dist'
+output=project.parent/'WebAR-server-ready-v2'
+output.mkdir(exist_ok=True)
+files=[
+ 'index.html','app.js','styles.css','marker.html','marker.js','marker-persistence.js','model-loader.js','favicon.svg','_headers',
+ 'vendor/aframe-1.6.0.min.js','vendor/aframe-ar-3.4.8.js','vendor/camera_para.dat','vendor/LICENSE-aframe','vendor/LICENSE-arjs',
+ 'assets/brand/mogs-logo.png','assets/marker/marker-black.svg','assets/marker/mogs-white-background.patt','assets/model/MW35018A.glb'
+]
+for name in files:
+ destination=output/name;destination.parent.mkdir(parents=True,exist_ok=True)
+ shutil.copy2(source/name,destination)
+readme='''نسخهٔ اصلاح موبایل v2
+
+تمام محتوای ZIP را در مسیر سایت استخراج کنید؛ index.html در ریشهٔ همان مسیر باشد.
+HTTPS معتبر و مجوز دوربین لازم است. نصب npm یا build لازم نیست.
+فایل مدل جدید: assets/model/MW35018A.glb . این فایل کامل است و BIN جداگانه لازم ندارد.
+تمام فایل‌های نسخهٔ جدید، از جمله app.js، styles.css و model-loader.js را جایگزین کنید.
+فایل‌های قدیمی با پسوند gltf و bin دیگر توسط این نسخه درخواست نمی‌شوند؛ می‌توانید آن‌ها را نگه دارید.
+مسیر و بزرگی/کوچکی حروف نام فایل‌ها را حفظ کنید. سرور باید فایل glb را به‌صورت فایل باینری برگرداند، نه صفحهٔ index.html.
+نوع MIME پیشنهادی GLB برابر model/gltf-binary است؛ نوع عمومی application/octet-stream هم توسط دانلودکنندهٔ این سایت پذیرفته می‌شود.
+فایل VERSION.txt برای بررسی نسخه و SHA256SUMS.txt برای کنترل صحت فایل‌هاست.
+فایل _headers فقط توسط میزبان‌های سازگار با این قالب پردازش می‌شود؛ تنظیمات وب‌سرورهای دیگر مستقل است.
+برای مارکر مشکی از marker.html استفاده کنید. تنظیم نگه‌داشتن آخرین موقعیت مدل حفظ شده است.
+'''
+(output/'README-DEPLOY.fa.txt').write_text(readme)
+(output/'VERSION.txt').write_text('mobile-v2\n')
+checksums=''.join(hashlib.sha256((output/n).read_bytes()).hexdigest()+'  '+n+'\n' for n in files)
+(output/'SHA256SUMS.txt').write_text(checksums)
+class Links(HTMLParser):
+ def __init__(self):super().__init__();self.refs=[]
+ def handle_starttag(self,tag,attrs):self.refs.extend(v for k,v in attrs if k in ('href','src') and v)
+for name in ('index.html','marker.html'):
+ parser=Links();parser.feed((output/name).read_text())
+ for ref in parser.refs:
+  parsed=urlsplit(ref)
+  if not parsed.scheme and parsed.path:assert (output/unquote(parsed.path)).exists(),ref
+for ref in re.findall(r"loadScript\(['\"]([^'\"]+)",(output/'app.js').read_text()):assert (output/urlsplit(ref).path).is_file(),ref
+blob=(output/'assets/model/MW35018A.glb').read_bytes()
+assert struct.unpack_from('<III',blob)==(0x46546c67,2,len(blob))
+jlen,jtype=struct.unpack_from('<II',blob,12);assert jtype==0x4e4f534a
+model=json.loads(blob[20:20+jlen]);assert all('uri' not in b for b in model['buffers'])
+assert not model.get('images')
+archive=output.with_suffix('.zip')
+with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as z:
+ for name in files+['README-DEPLOY.fa.txt','VERSION.txt','SHA256SUMS.txt']:z.write(output/name,name)
+with zipfile.ZipFile(archive) as z:
+ assert z.testzip() is None
+ for name in files:assert z.read(name)==(source/name).read_bytes(),name
+print(json.dumps({'folder':str(output),'zip':str(archive),'bytes':archive.stat().st_size,'runtime_files':len(files),'checks':'passed'},indent=2))

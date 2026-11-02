@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>MOGS marker calibration</title></head><body>
+<h1>Encode the supplied marker's white-background interior</h1><p id="result">Encoding…</p><textarea id="pattern" aria-label="Encoded ARToolKit pattern" style="width:95vw;height:300px"></textarea>
+<script>
+// Same 16x16 BGR / four counterclockwise orientations as AR.js ArPatternFile.encodeImage.
+const image = new Image(); image.src = '/dist/assets/marker/marker-original.png';
+image.onload = () => {
+ const canvas=document.createElement('canvas');canvas.width=canvas.height=16;
+ const context=canvas.getContext('2d'); let output='';
+ const borderStart=0.1*512, borderSize=0.8*512, ratio=0.77;
+ const innerStart=borderStart+borderSize*(1-ratio)/2, innerSize=borderSize*ratio;
+ for(let direction=0;direction<4;direction++){
+  context.save();context.clearRect(0,0,16,16);context.translate(8,8);context.rotate(-direction*Math.PI/2);
+  context.drawImage(image,innerStart,innerStart,innerSize,innerSize,-8,-8,16,16);context.restore();
+  const data=context.getImageData(0,0,16,16).data;if(direction)output+='\n';
+  for(let channel=2;channel>=0;channel--)for(let y=0;y<16;y++){
+   for(let x=0;x<16;x++){if(x)output+=' ';output+=String(data[(y*16+x)*4+channel]).padStart(3);}
+   output+='\n';
+  }
+ }
+ document.getElementById('pattern').value=output;
+ document.getElementById('result').textContent='Ready: ratio 0.77; white composited background; 3072 samples';
+};
+</script></body></html>
