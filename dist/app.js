@@ -201,7 +201,7 @@
   });
   $('help-open').addEventListener('click', () => { gestures.cancel(); $('help-dialog').showModal(); });
   $('help-close').addEventListener('click', () => $('help-dialog').close());
-  const holdOptions = new Set(['0', '500', '1500', '3000']);
+  const holdOptions = new Set(Array.from($('tracking-hold').options, option => option.value));
   try {
     const savedHold = localStorage.getItem('mogs-marker-hold-ms');
     if (holdOptions.has(savedHold)) $('tracking-hold').value = savedHold;
@@ -211,6 +211,26 @@
     if (!holdOptions.has(value)) return;
     $('tracked-part')?.setAttribute('marker-persistence', 'holdMs', Number(value));
     try { localStorage.setItem('mogs-marker-hold-ms', value); } catch { /* Optional preference. */ }
+  });
+  const smoothingOptions = new Set(Array.from($('tracking-smoothing').options, option => option.value));
+  try {
+    const saved = localStorage.getItem('mogs-marker-smoothing-ms');
+    if (smoothingOptions.has(saved)) $('tracking-smoothing').value = saved;
+    const light = localStorage.getItem('mogs-ambient-light');
+    if (light !== null && Number.isFinite(Number(light)) && Number(light) >= 0 && Number(light) <= 0.65) $('ambient-light').value = light;
+  } catch { /* Optional preferences. */ }
+  $('ambient-value').value = Number($('ambient-light').value).toFixed(2);
+  $('tracking-smoothing').addEventListener('change', () => {
+    const value = $('tracking-smoothing').value;
+    if (!smoothingOptions.has(value)) return;
+    $('tracked-part')?.setAttribute('marker-persistence', 'smoothingMs', Number(value));
+    try { localStorage.setItem('mogs-marker-smoothing-ms', value); } catch { /* Optional preference. */ }
+  });
+  $('ambient-light').addEventListener('input', () => {
+    const value = Number($('ambient-light').value);
+    $('ambient-model-light')?.setAttribute('light', 'intensity', value);
+    $('ambient-value').value = value.toFixed(2);
+    try { localStorage.setItem('mogs-ambient-light', String(value)); } catch { /* Optional preference. */ }
   });
   $('help-dialog').addEventListener('click', (event) => { if (event.target === $('help-dialog')) { const r = event.target.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) event.target.close(); } });
 
@@ -242,18 +262,20 @@
       await verifyTrackingAssets();
       await loadScript('./vendor/aframe-1.6.0.min.js');
       await loadScript('./vendor/aframe-ar-3.4.8.js');
-      await loadScript('./marker-persistence.js?v=1');
+      await loadScript('./camera-geometry.js?v=tracking-v5');
+      await loadScript('./marker-persistence.js?v=tracking-v5');
       await loadScript('./model-loader.js?v=mobile-v2');
       registerModelComponent();
       const fragment = $('scene-template').content.cloneNode(true);
       scene = fragment.querySelector('a-scene');
       const trackedPart = fragment.querySelector('#tracked-part');
-      trackedPart.setAttribute('marker-persistence', `marker: #part-marker; holdMs: ${Number($('tracking-hold').value)}`);
+      trackedPart.setAttribute('marker-persistence', `marker: #part-marker; holdMs: ${Number($('tracking-hold').value)}; smoothingMs: ${Number($('tracking-smoothing').value)}`);
       trackedPart.addEventListener('tracking-phase-changed', (event) => {
         state.marker = event.detail.phase === 'tracked';
         state.holding = event.detail.phase === 'holding';
         renderStatus();
       });
+      fragment.querySelector('#ambient-model-light').setAttribute('light', `type: ambient; color: #ffffff; intensity: ${Number($('ambient-light').value)}`);
       $('ar-stage').appendChild(fragment);
       renderStatus();
       startupTimer = window.setTimeout(() => {

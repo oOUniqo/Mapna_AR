@@ -1,7 +1,9 @@
 /* Development fixture only: feed the reconstructed marker into the real webcam pipeline. */
 (() => {
   const canvas = document.createElement('canvas');
-  canvas.width = 1280; canvas.height = new URLSearchParams(location.search).get('aspect') === 'wide' ? 720 : 960;
+  const aspect = new URLSearchParams(location.search).get('aspect');
+  canvas.width = aspect === 'portrait' ? 720 : 1280;
+  canvas.height = aspect === 'wide' ? 720 : aspect === 'portrait' ? 1280 : 960;
   const ctx = canvas.getContext('2d');
   const marker = new Image();
   marker.src = '/dist/assets/marker/marker-black.svg';

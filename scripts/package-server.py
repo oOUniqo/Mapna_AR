@@ -6,17 +6,17 @@ import hashlib,json,re,shutil,struct,zipfile
 
 project=Path(__file__).resolve().parent.parent
 source=project/'dist'
-output=project.parent/'WebAR-server-ready-v4'
+output=project.parent/'WebAR-server-ready-v5'
 output.mkdir(exist_ok=True)
 files=[
- 'web.config','index.html','app.js','styles.css','marker.html','marker.js','marker-persistence.js','model-loader.js','model-gestures.js','favicon.svg','_headers',
+ 'web.config','index.html','app.js','styles.css','marker.html','marker.js','marker-persistence.js','model-loader.js','model-gestures.js','camera-geometry.js','favicon.svg','_headers',
  'vendor/aframe-1.6.0.min.js','vendor/aframe-ar-3.4.8.js','vendor/camera_para.dat','vendor/LICENSE-aframe','vendor/LICENSE-arjs',
  'assets/brand/mogs-logo.png','assets/marker/marker-black.svg','assets/marker/mogs-white-background.patt','assets/model/MW35018A.glb'
 ]
 for name in files:
  destination=output/name;destination.parent.mkdir(parents=True,exist_ok=True)
  shutil.copy2(source/name,destination)
-readme='''نسخهٔ کنترل لمسی مدل و اصلاحات IIS - v4
+readme='''نسخهٔ اصلاح هندسهٔ دوربین، نور و نرمی ردیابی - v5
 
 تمام محتوای ZIP را در مسیر سایت استخراج کنید؛ index.html و web.config در ریشهٔ همان مسیر باشند.
 اگر از قبل web.config سفارشی دارید، بخش staticContent این فایل را با آن ادغام کنید و تنظیمات دیگر سرور را نگه دارید.
@@ -24,7 +24,7 @@ readme='''نسخهٔ کنترل لمسی مدل و اصلاحات IIS - v4
 این بسته نگاشت MIME پسوندهای .patt و .dat و .glb را برای IIS دارد. این تنظیم مجوز پوشه یا فایلِ آپلودنشده را درست نمی‌کند؛ فایل‌ها باید واقعاً در مسیرهای بسته موجود باشند.
 HTTPS معتبر و مجوز دوربین لازم است. نصب npm یا build لازم نیست.
 فایل مدل جدید: assets/model/MW35018A.glb . این فایل کامل است و BIN جداگانه لازم ندارد.
-تمام فایل‌های نسخهٔ جدید، از جمله index.html، app.js، styles.css و model-gestures.js را جایگزین کنید.
+تمام فایل‌های نسخهٔ جدید، از جمله index.html، app.js، styles.css و model-gestures.js و camera-geometry.js و marker-persistence.js را جایگزین کنید.
 روی تصویر دوربین با یک انگشت بکشید تا مدل بچرخد. دو انگشت برای زوم و چرخش است.
 اگر از Git کلون می‌کنید، Physical Path سایت IIS باید پوشهٔ dist داخل مخزن باشد.
 فایل‌های قدیمی با پسوند gltf و bin دیگر توسط این نسخه درخواست نمی‌شوند؛ می‌توانید آن‌ها را نگه دارید.
@@ -32,10 +32,15 @@ HTTPS معتبر و مجوز دوربین لازم است. نصب npm یا build
 نوع MIME پیشنهادی GLB برابر model/gltf-binary است؛ نوع عمومی application/octet-stream هم توسط دانلودکنندهٔ این سایت پذیرفته می‌شود.
 فایل VERSION.txt برای بررسی نسخه و SHA256SUMS.txt برای کنترل صحت فایل‌هاست.
 فایل _headers فقط توسط میزبان‌های سازگار با این قالب پردازش می‌شود؛ تنظیمات وب‌سرورهای دیگر مستقل است.
-برای مارکر مشکی از marker.html استفاده کنید. تنظیم نگه‌داشتن آخرین موقعیت مدل حفظ شده است.
+برای مارکر مشکی از marker.html استفاده کنید. مهلت نگه‌داشتن آخرین موقعیت: ۰، ۰٫۵، ۱٫۵، ۳، ۵، ۸، ۱۰، ۱۵، ۳۰ و ۶۰ ثانیه؛ پیش‌فرض برای مرورگر بدون تنظیم قبلی ۵ ثانیه است.
+گزینهٔ نرمی حرکت مدل پنج حالت دارد؛ حالت متوسط پیش‌فرض است. نرمی بیشتر تأخیر بیشتری در دنبال‌کردن حرکت دارد.
+نور محیطی از ۰ تا ۰٫۶۵ قابل تنظیم است؛ پیش‌فرض ۰٫۳۰ است و نورهای جهت‌دار نیز کاهش یافته‌اند.
+تنظیم‌ها در همان مرورگر ذخیره می‌شوند. هنگام قطع تشخیص، فقط آخرین موقعیت نسبت به دوربین ثابت می‌ماند؛ این قابلیت ردیابی فضایی مستقل نیست.
+اصلاح نسبت تصویر برای ورودی‌های ۴:۳، ۱۶:۹ و عمودی در مرورگر آزمایش شده است. آزمون نهایی با گوشی و مارکر واقعی لازم است.
+برای بررسی کش مرورگر، app.js و camera-geometry.js باید با v=tracking-v5 بارگذاری شوند.
 '''
 (output/'README-DEPLOY.fa.txt').write_text(readme)
-(output/'VERSION.txt').write_text('gestures-v4\n')
+(output/'VERSION.txt').write_text('tracking-v5\n')
 checksums=''.join(hashlib.sha256((output/n).read_bytes()).hexdigest()+'  '+n+'\n' for n in files)
 (output/'SHA256SUMS.txt').write_text(checksums)
 class Links(HTMLParser):

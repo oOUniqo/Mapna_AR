@@ -7,9 +7,9 @@
   <meta name="description" content="قطعه MW35018A را با دوربین و مارکر اختصاصی در واقعیت افزوده ببینید.">
   <title>MOGS · نمایش قطعه در واقعیت افزوده</title>
   <link rel="icon" href="./assets/brand/mogs-logo.png" type="image/png">
-  <link rel="stylesheet" href="./styles.css?v=gestures-v4">
-  <script src="./model-gestures.js?v=gestures-v4" defer></script>
-  <script src="./app.js?v=gestures-v4" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=tracking-v5">
+  <script src="./model-gestures.js?v=tracking-v5" defer></script>
+  <script src="./app.js?v=tracking-v5" defer></script>
 </head>
 <body data-state="starting">
   <div class="camera-backdrop" aria-hidden="true"></div>
@@ -35,7 +35,9 @@
           <button type="button" id="rotate" class="text-tool" disabled><span aria-hidden="true">↻</span> چرخش</button>
           <button type="button" id="reset" class="text-tool" disabled><span aria-hidden="true">⟲</span> بازنشانی</button>
         </div>
-        <label class="tracking-option" for="tracking-hold"><span>مهلت قطع تشخیص مارکر</span><select id="tracking-hold"><option value="0">بدون مهلت</option><option value="500">۰٫۵ ثانیه</option><option value="1500" selected>۱٫۵ ثانیه</option><option value="3000">۳ ثانیه</option></select></label>
+        <label class="tracking-option" for="tracking-hold"><span>مهلت قطع تشخیص مارکر</span><select id="tracking-hold"><option value="0">بدون مهلت</option><option value="500">۰٫۵ ثانیه</option><option value="1500">۱٫۵ ثانیه</option><option value="3000">۳ ثانیه</option><option value="5000" selected>۵ ثانیه</option><option value="8000">۸ ثانیه</option><option value="10000">۱۰ ثانیه</option><option value="15000">۱۵ ثانیه</option><option value="30000">۳۰ ثانیه</option><option value="60000">۶۰ ثانیه</option></select></label>
+        <label class="tracking-option" for="tracking-smoothing"><span>نرمی حرکت مدل</span><select id="tracking-smoothing"><option value="0">خاموش</option><option value="80">کم · سریع</option><option value="180" selected>متوسط</option><option value="300">زیاد</option><option value="500">خیلی زیاد · کندتر</option></select></label>
+        <label class="tracking-option lighting-option" for="ambient-light"><span>نور محیطی مدل</span><input id="ambient-light" type="range" min="0" max="0.65" step="0.05" value="0.3" aria-describedby="ambient-value"><output id="ambient-value" for="ambient-light" dir="ltr">0.30</output></label>
       </section>
       <footer><span>کشیدن: چرخش · دو انگشت: زوم و چرخش</span><button type="button" id="help-open">راهنما <span aria-hidden="true">↗</span></button></footer>
     </div>
@@ -57,12 +59,12 @@
   <noscript><div class="notice">برای نمایش واقعیت افزوده، جاوااسکریپت مرورگر را فعال کنید.</div></noscript>
 
   <template id="scene-template">
-    <a-scene embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" renderer="alpha: true; antialias: true; colorManagement: true; precision: medium" arjs="sourceType: webcam; trackingMethod: best; detectionMode: mono; patternRatio: 0.77; debugUIEnabled: false; sourceWidth: 1280; sourceHeight: 960; canvasWidth: 640; canvasHeight: 480; maxDetectionRate: 30; cameraParametersUrl: ./vendor/camera_para.dat?v=iis-v3; errorPopup: error-popup;">
-      <a-entity light="type: ambient; color: #ffffff; intensity: 0.65"></a-entity>
-      <a-entity light="type: directional; color: #ffffff; intensity: 1.2" position="1 3 2"></a-entity>
-      <a-entity light="type: directional; color: #d7e8ff; intensity: 0.4" position="-2 1 -1"></a-entity>
-      <a-marker id="part-marker" type="pattern" url="./assets/marker/mogs-white-background.patt?v=iis-v3" size="1" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2"></a-marker>
-      <a-entity id="tracked-part" marker-persistence="marker: #part-marker; holdMs: 1500" visible="false">
+    <a-scene camera-geometry embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" renderer="alpha: true; antialias: true; colorManagement: true; precision: medium" arjs="sourceType: webcam; trackingMethod: best; detectionMode: mono; patternRatio: 0.77; debugUIEnabled: false; sourceWidth: 1280; sourceHeight: 960; canvasWidth: 640; canvasHeight: 480; maxDetectionRate: 30; cameraParametersUrl: ./vendor/camera_para.dat?v=iis-v3; errorPopup: error-popup;">
+      <a-entity id="ambient-model-light" light="type: ambient; color: #ffffff; intensity: 0.3"></a-entity>
+      <a-entity light="type: directional; color: #ffffff; intensity: 0.75" position="1 3 2"></a-entity>
+      <a-entity light="type: directional; color: #d7e8ff; intensity: 0.2" position="-2 1 -1"></a-entity>
+      <a-marker id="part-marker" type="pattern" url="./assets/marker/mogs-white-background.patt?v=iis-v3" size="1" emitevents="true" smooth="false"></a-marker>
+      <a-entity id="tracked-part" marker-persistence="marker: #part-marker; holdMs: 5000; smoothingMs: 180" visible="false">
         <a-entity id="model-controls"><a-entity id="part-model" fit-to-marker verified-gltf-model="src: ./assets/model/MW35018A.glb?v=mobile-v2"></a-entity></a-entity>
       </a-entity>
       <a-entity camera="near: 0.01; far: 1000" look-controls="enabled: false" wasd-controls="enabled: false"></a-entity>
